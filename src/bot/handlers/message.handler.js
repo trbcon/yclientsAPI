@@ -1,5 +1,6 @@
 import { askLLM } from '../../ai/openrouter.client.js';
 import { parseLLMResponse } from '../../ai/response.parser.js';
+import { routeIntent } from '../logic/intent.router.js';
 
 export async function onMessage(ctx) {
   try {
@@ -16,8 +17,8 @@ export async function onMessage(ctx) {
 
     console.log('💡 Ответ LLM:', llm);
 
-    // test
-    await ctx.reply(`LLM вернул:\n${JSON.stringify(llm, null, 2)}`);
+    // send to intent.router
+    await routeIntent(ctx, llm);
 
   } catch (err) {
     console.error('❌ Ошибка в обработчике сообщений:', err);

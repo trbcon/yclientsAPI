@@ -1,36 +1,27 @@
-import { updateUserState, getUserState, clearUserState } from './conversation.manager.js';
-import { createBooking } from '../yclients/bookings.api.js';
+import * as YcApi from '../yclients/bookings.api.js';
 
-export async function handleBooking(ctx, llmResponse) {
+export async function handleBooking(ctx, data) {
+  const required = ['fullname', 'phone', 'staff_id', 'service_ids', 'time'];
+  const missing = required.filter(f => !data[f] || (Array.isArray(data[f]) && data[f].length === 0));
+
+  if (missing.length > 0) {
+    return ctx.reply(`❌ Не хватает данных: ${missing.join(', ')}. Пожалуйста, уточните.`);
+  }
+
   try {
-    const userId = ctx.from.id;
-    const missing = llmResponse.missing_fields || [];
-    const bookingData = llmResponse.data || {};
+    const result = await YcApi.createBooking({
+      fullname: data.fullname,
+      phone: data.phone,
+      staff_id: data.staff_id,
+      service_ids: data.service_ids,
+      time: data.time,
+      email: data.email || null,
+      comment: data.comment || ''
+    });
 
-    if (missing.length > 0) {
-      await ctx.reply(
-        `Пожалуйста, уточните следующие данные: ${missing.join(', ')}`
-      );
-
-      // store to state
-      const prevState = getUserState(userId);
-      updateUserState(userId, { ...prevState, bookingData });
-
-      return;
-    }
-
-    // booking
-    const result = await createBooking(bookingData);
-
-    console.log('✅ Booking result:', result);
-
-    await ctx.reply('✅ Запись успешно создана!');
-
-    // clear state
-    clearUserState(userId);
-
+    await ctx.reply(`✅ Запись успешно создана! ID: ${result.id || 'неизвестно'}`);
   } catch (err) {
-    console.error('❌ Ошибка в booking.flow:', err);
-    await ctx.reply('❌ Не удалось создать запись. Попробуйте позже.');
+    console.error('❌ Booking error:', err);
+    await ctx.reply('❌ Не удалось создать запись. Попробуйте снова.');
   }
 }
