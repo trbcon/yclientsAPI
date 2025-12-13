@@ -1,4 +1,5 @@
-import { updateUserState, getUserState } from './conversation.manager.js';
+import { updateUserState, getUserState, clearUserState } from './conversation.manager.js';
+import { createBooking } from '../yclients/bookings.api.js';
 
 export async function handleBooking(ctx, llmResponse) {
   try {
@@ -6,35 +7,30 @@ export async function handleBooking(ctx, llmResponse) {
     const missing = llmResponse.missing_fields || [];
     const bookingData = llmResponse.data || {};
 
-    // missing fields
     if (missing.length > 0) {
       await ctx.reply(
         `Пожалуйста, уточните следующие данные: ${missing.join(', ')}`
       );
 
-      // store data to state
+      // store to state
       const prevState = getUserState(userId);
       updateUserState(userId, { ...prevState, bookingData });
 
       return;
     }
 
-    // show data to user
-    await ctx.reply(
-      `✅ Все данные получены! Можете проверить:\n${JSON.stringify(
-        bookingData,
-        null,
-        2
-      )}\nСейчас готово к записи в Yclients.`
-    );
+    // booking
+    const result = await createBooking(bookingData);
 
-    // Yclients API soon
+    console.log('✅ Booking result:', result);
 
-    // store state
-    updateUserState(userId, { bookingData });
+    await ctx.reply('✅ Запись успешно создана!');
+
+    // clear state
+    clearUserState(userId);
 
   } catch (err) {
     console.error('❌ Ошибка в booking.flow:', err);
-    await ctx.reply('Произошла ошибка при обработке записи.');
+    await ctx.reply('❌ Не удалось создать запись. Попробуйте позже.');
   }
 }

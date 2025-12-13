@@ -23,7 +23,9 @@ export const config = {
   },
 
   yclients: {
-    apiToken: required('YCLIENTS_TOKEN'),
+    partnerToken: required('YCLIENTS_PARTNER_TOKEN'),
+    userToken: required('YCLIENTS_USER_TOKEN'),
+    companyId: required('YCLIENTS_COMPANY_ID'),
     baseUrl: 'https://api.yclients.com/api/v1',
   },
 };
