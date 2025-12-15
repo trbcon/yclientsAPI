@@ -1,6 +1,6 @@
 import { askLLM } from '../../ai/openrouter.client.js';
 import { parseLLMResponse } from '../../ai/response.parser.js';
-import { routeIntent } from '../logic/intent.router.js';
+import { routeIntent } from '../../logic/intent.router.js';
 
 export async function onMessage(ctx) {
   try {

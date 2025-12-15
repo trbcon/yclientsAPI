@@ -1,5 +1,5 @@
 import { config } from '../config/config.js';
-import { generateSystemPrompt } from './systemPrompt.js';
+import { generateSystemPrompt } from './system.prompt.js';
 import * as YcApi from '../yclients/bookings.api.js';
 
 class OpenRouterClient {
