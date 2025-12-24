@@ -1,24 +1,21 @@
-import { Telegraf } from 'telegraf';
-import { config } from '../config/config.js';
-import { onMessage } from './handlers/message.handler.js';
-import { onStart } from './handlers/start.handler.js';
+import { Telegraf } from 'telegraf'
+import { conversationManager } from '../logic/conversation.manager.js'
+import { handleIntent } from '../logic/intent.router.js'
 
-export function initBot() {
-  const bot = new Telegraf(config.telegram.token);
+export const initBot = () => {
+  const bot = new Telegraf(process.env.TG_TOKEN)
 
-  bot.start(onStart);
+  bot.on('text', async (ctx) => {
+    const chatId = ctx.chat.id
 
-  bot.on('text', onMessage);
+    // сохраняем ctx для дальнейших reply
+    conversationManager.setCtx(chatId, ctx)
 
-  bot.catch((err, ctx) => {
-    console.error('❌ Ошибка в боте:', err);
-    ctx.reply('Произошла ошибка, попробуйте ещё раз.');
-  });
+    await handleIntent(chatId, ctx.message.text)
+  })
 
-  bot.launch().then(() => {
-    console.log(`✅ Telegram бот запущен в режиме ${config.env}`);
-  });
+  bot.launch()
+  console.log('🤖 Telegram bot started')
 
-  process.once('SIGINT', () => bot.stop('SIGINT'));
-  process.once('SIGTERM', () => bot.stop('SIGTERM'));
+  return bot
 }

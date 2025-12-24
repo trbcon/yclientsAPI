@@ -1,25 +1,26 @@
-import { handleBooking } from './booking.flow.js';
-import * as YcApi from '../yclients/bookings.api.js';
+import { sendToAI } from '../ai/openrouter.client.js'
+import { bookingFlow } from './booking.flow.js'
 
-export async function routeIntent(ctx, llmResponse) {
-  switch (llmResponse.type) {
-    case 'booking':
-      await handleBooking(ctx, llmResponse);
-      break;
+export const handleIntent = async (chatId, text) => {
+  const session = conversationManager.get(chatId)
+  const ctx = session.ctx
 
-    case 'free_masters':
-    case 'all_availability':
-    case 'date_availability':
-    case 'staff_availability':
-      const realSlots = await YcApi.getAvailableSlots(llmResponse.staff_id, llmResponse.date, 7);
-      await ctx.reply(JSON.stringify(realSlots, null, 2));
-      break;
+  const aiRaw = await sendToAI(chatId, text)
 
-    case 'message':
-      await ctx.reply(llmResponse.msg);
-      break;
-
-    default:
-      await ctx.reply('🤔 Неизвестный intent.');
+  let intent
+  try {
+    intent = JSON.parse(aiRaw)
+  } catch {
+    return ctx.reply(aiRaw)
   }
+
+  if (intent.type === 'booking') {
+    return bookingFlow(chatId, intent)
+  }
+
+  if (intent.type === 'message') {
+    return ctx.reply(intent.msg)
+  }
+
+  return ctx.reply('Не понял запрос 🤔')
 }
