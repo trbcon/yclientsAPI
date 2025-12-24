@@ -6,10 +6,15 @@ export const initBot = () => {
   const bot = new Telegraf(process.env.TG_TOKEN)
 
   bot.on('text', async (ctx) => {
+    if (!ctx) {
+      console.error('ctx not found for chat:', chatId)
+      return
+    }
+
     const chatId = ctx.chat.id
 
     // сохраняем ctx для дальнейших reply
-    conversationManager.setCtx(chatId, ctx)
+    conversationManager.setContext(chatId, ctx)
 
     await handleIntent(chatId, ctx.message.text)
   })

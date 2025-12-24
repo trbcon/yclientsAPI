@@ -1,5 +1,6 @@
 import { sendToAI } from '../ai/openrouter.client.js'
 import { bookingFlow } from './booking.flow.js'
+import { conversationManager } from './conversation.manager.js'
 
 export const handleIntent = async (chatId, text) => {
   const session = conversationManager.get(chatId)
